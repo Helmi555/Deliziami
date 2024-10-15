@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
+import { Platform, SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import 'react-native-gesture-handler';
 import Home from './screens/home';
 import Product from './screens/product';
-import Login from './screens/login'; // Import the Login screen
 import AnimTab3, { TabButton } from './components/AnimTab3';
 import { Icons } from './components/Icons';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -14,6 +13,8 @@ import { useKeyboard } from '@react-native-community/hooks';
 import { AuthProvider, useAuth } from './contexts/authContext'; // Import the AuthProvider
 import AuthNavigator from './screens/Stacks/AuthStackNavigator';
 import HomeStack from './screens/Stacks/HomeStack';
+import SplashScreen from 'react-native-splash-screen';
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -29,15 +30,17 @@ function BottomTabs() {
   const keyboard = useKeyboard();
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={(route) => ({
         headerShown: false,
+        //tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: keyboard.keyboardShown ? "transparent" : "#2a2a2f",
           height: keyboard.keyboardShown ? 0 : hp("8%"),
           borderColor: "transparent",
           overflow: 'hidden',
+          //display: route == "Product Details" ? "none" : "flex"
         }
-      }}
+      })}
     >
       {TabArr.map((item, index) => (
         <Tab.Screen
@@ -45,6 +48,7 @@ function BottomTabs() {
           name={item.route}
           component={item.component}
           options={{
+
             tabBarShowLabel: false,
             tabBarButton: (props) => <TabButton {...props} item={item} />
 
@@ -85,6 +89,13 @@ function AuthStack() {
 
 // Main App Component
 export default function App() {
+
+  /*  useEffect(() => {
+     // Hide splash screen after app is loaded
+     if (Platform.OS === "android") SplashScreen.hide()
+ 
+   }, []); */
+
   return (
     <AuthProvider>
       <SafeAreaView style={styles.container}>

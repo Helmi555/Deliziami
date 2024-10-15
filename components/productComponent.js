@@ -7,45 +7,14 @@ import FastImage from 'react-native-fast-image';
 //import SkeletonContent from 'react-native-skeleton-content';
 import CustomSkeletonLoader from './CustomSkeletonLoader';
 //import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-
-
-
-
-/* const ProductSkeleton = () => {
-  return (
-    <SkeletonPlaceholder>
-      <View style={styles.skeletonContainer}>
-          <View style={styles.imageSkeleton} />
-        
-        <View style={styles.textWrapper}>
-          <View style={styles.textSkeleton} />
-          <View style={styles.textSkeletonShort} />
-        </View>
-        
-        <View style={styles.emojiSkeleton} />
-
-        <View style={styles.footerSkeleton}>
-          <View style={styles.priceSkeleton} />
-          <View style={styles.iconSkeleton} />
-        </View>
-
-      </View>
-    </SkeletonPlaceholder>
-  );
-};  */
-
-
-const pizzaImages = [
-  { id: '1', source: require('../assets/images/pizza.png') },
-  { id: '2', source: require('../assets/images/pizza2.png') },
-  { id: '3', source: require('../assets/images/pizza3.png') },
-  // Add more images as needed
-];
+import { getScreenDimension } from '../functions';
+import ProductDetails from '../screens/productDetails';
+const screenDimension = getScreenDimension()
 
 const ProductComponent = React.memo(({ product, navigation }) => {
 
   const [isFavorite, setIseFavorite] = useState(false)
-
+  const [isLoading, setIsLoading] = useState(true)
   /*   if (!fontsLoaded) {
        return  (  <SkeletonContent
         containerStyle={styles.skeletonContainer}
@@ -62,16 +31,20 @@ const ProductComponent = React.memo(({ product, navigation }) => {
 }
  */
 
+  const handleImageLoad = () => {
+    setIsLoading(false)
+  }
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate("Product")}>
+    <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate("Product Details", { product })}>
       <View style={styles.container}>
         <View style={styles.imageWrapper}>
-          <Image
+          <FastImage
             style={styles.image}
             source={{
               uri: product.photoUrl,
               priority: FastImage.priority.high,
             }}
+            onLoad={handleImageLoad}
             resizeMode={FastImage.resizeMode.cover}
           />
         </View>
@@ -146,9 +119,11 @@ const styles = StyleSheet.create({
     marginBottom: hp(3.2)
   },
   image: {
-    width: wp("36%"),
-    height: wp("34%"),
-
+    /* width: wp("36%"),
+    height: wp("34%"), */
+    width: screenDimension > 4.5 ? wp(36) : wp(34),
+    height: screenDimension > 4.5 ? wp(34) : wp(32),
+    borderRadius: wp(2),
     position: 'absolute',
     top: -wp(16),
     left: wp("3%"), // Adjust the left margin to position the image

@@ -242,7 +242,7 @@ export default function Home({ navigation }) {
             keyExtractor={item => item.id}
             ListFooterComponent={() =>
               <View style={{ justifyContent: "center", alignItems: "center", height: "100%" }}>
-                <IconButton icon="plus" size={wp(8)} iconColor={'#2a2a2f'} onPress={() => navigation.navigate("List of Products")} />
+                <IconButton icon="plus" size={wp(8)} iconColor={'#2a2a2f'} onPress={() => navigation.navigate("List of Products", { category: selectedCategory })} />
                 <Text>Vedi di piu</Text>
               </View>
             }

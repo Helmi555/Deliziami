@@ -13,8 +13,8 @@ const bevandeList = [
     { id: '4', source: require('../assets/images/bevande/sprite_PNG98773.png'), price: "1.60" }
 ];
 
-export default function BevandeList() {
-    const [selectedBevanda, setSelectedBevanda] = useState([]);
+export default function BevandeList({ selectedBevanda, setSelectedBevanda }) {
+    //    const [selectedBevanda, setSelectedBevanda] = useState([]);
 
     const handleSelectBevanda = (item) => {
         if (selectedBevanda.includes(item)) {

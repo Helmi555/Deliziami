@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, StatusBar, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -8,28 +8,53 @@ import FastImage from 'react-native-fast-image';
 import CustomSkeletonLoader from './CustomSkeletonLoader';
 //import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { getScreenDimension } from '../functions';
+import CustomProdSkeleton2 from './CustomProdSkeleton2';
+import CustomImageSkeleton from './CustomImageSkeleton';
 
 
 const screenDimension = getScreenDimension()
 const ProductComponent2 = React.memo(({ product, navigation }) => {
 
   const [isFavorite, setIseFavorite] = useState(false)
+  const [isLoading, setIsLoading] = useState(false); // State to handle loading status
 
+  const handleImageLoad = () => {
+    //console.log("LOAD: setting isloading to false", isLoading)
+    setIsLoading(false); // Set loading to false once the image is loaded
+  };
+  const handleImageLoadEnd = () => {
+    setIsLoading(false); // Set loading to false once the image is loaded
+  };
+
+  const handleImageLoadError = () => {
+    console.error('Image failed to load');
+    setIsLoading(false);
+  }
+
+
+  /* if (isLoading) {
+    return <CustomSkeletonLoader />
+  } 
+*/
 
 
 
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate("Product")}>
-      <View style={styles.container}>
+    <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate("Product Details", { product })}>
+      < View style={styles.container} >
         <View style={styles.imageWrapper}>
-          <Image
+          {/*{isLoading && <CustomImageSkeleton />}*/}
+          <FastImage
             style={styles.image}
             source={{
               uri: product.photoUrl,
               priority: FastImage.priority.high,
             }}
+            onLoad={handleImageLoad}
+            onError={handleImageLoadError}
             resizeMode={FastImage.resizeMode.cover}
           />
+
         </View>
 
         <View style={styles.textWrapper}>
@@ -42,7 +67,7 @@ const ProductComponent2 = React.memo(({ product, navigation }) => {
      <Text style={{fontSize:RFPercentage(3.2),marginRight:16,marginBottom:0}} >👋</Text>
 
      </View> */}
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingBottom: hp("1%") }}>
+        < View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingBottom: hp("1%") }}>
           <Text style={[styles.priceText]}>€{product.sizePrice[0].price}</Text>
 
           <IconButton icon="heart" mode="contained" onPress={() => setIseFavorite(!isFavorite)}
@@ -58,8 +83,9 @@ const ProductComponent2 = React.memo(({ product, navigation }) => {
 
 
         </View>
-      </View>
-    </TouchableOpacity>
+      </View >
+
+    </TouchableOpacity >
 
   );
 })
@@ -70,22 +96,22 @@ const styles = StyleSheet.create({
     height: screenDimension > 4.5 ? hp(24) : hp(27),
     backgroundColor: '#f2f2f2',
     borderRadius: 20,
-    paddingHorizontal: wp("3%"),
+    paddingHorizontal: wp(2),
     paddingTop: wp("3%"),
     elevation: 5,
     marginTop: hp("8%"),
-    marginHorizontal: 10,
+    marginHorizontal: wp(2),
     overflow: 'visible',
   },
   text: {
-    fontSize: RFValue(20),
+    fontSize: RFValue(19),
     color: '#2a2a2f',
     fontWeight: "700",
     fontFamily: "Questrial_400Regular",
     textAlign: "left"
   },
   sizeText: {
-    fontSize: RFValue(17),
+    fontSize: RFValue(16),
     color: '#2a2a2f',
     fontWeight: "600",
     fontFamily: "Questrial_400Regular",
@@ -99,18 +125,24 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   imageWrapper: {
-    marginBottom: hp(0.2)
+    marginBottom: hp(0.2),
   },
   image: {
-    width: screenDimension > 4.5 ? wp("32%") : wp(32),
-    height: screenDimension > 4.5 ? wp("30%") : wp(30),
-
-
+    width: screenDimension > 4.5 ? wp(34) : wp(32),
+    height: screenDimension > 4.5 ? wp(32) : wp(30),
+    borderRadius: wp(2),
     position: 'absolute',
     top: -wp(16),
     left: wp(1.6), // Adjust the left margin to position the image
     zIndex: 1,
+    borderWidth: 0
 
+  },
+  hiddenImage: {
+    position: 'absolute', // Position the image absolutely
+    left: 0,
+    top: 0,
+    opacity: 0, // Hide the image while loading
   },
 
   textWrapper: {

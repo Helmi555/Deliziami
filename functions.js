@@ -40,10 +40,10 @@ async function onDisplayNotification(uuidCode) {
   const channelId = await notifee.createChannel({
     id: 'default',
     name: 'Default Channel',
-    sound: 'hollow', // Custom sound (should match the file name in res/raw)
+    //sound: 'hollow', // Custom sound (should match the file name in res/raw)
     importance: AndroidImportance.HIGH, // Make sure the notification pops up
     vibration: true, // Enable vibration
-    vibrationPattern: [200, 100], // Changed to an even-length pattern
+    vibrationPattern: [300, 500, 300, 500], // Changed to an even-length pattern
     lights: true,
     lightColor: AndroidColor.WHITE,
   });
@@ -55,8 +55,8 @@ async function onDisplayNotification(uuidCode) {
     android: {
       channelId,
       largeIcon: require("./assets/splash/notifIcon.png"), // Custom large icon
-      sound: 'hollow', // Use custom sound for the notification
-      vibrationPattern: [100, 200], // Changed to an even-length pattern
+      //sound: 'hollow', // Use custom sound for the notification
+      vibrationPattern: [300, 500], // Changed to an even-length pattern
       importance: AndroidImportance.HIGH,
       color: "#e06030",
       pressAction: {

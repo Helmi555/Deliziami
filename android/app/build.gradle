@@ -75,7 +75,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 
 //just added
 project.ext.react = [
-    enableHermes: false,  // Toggle true/false for Hermes
+    enableHermes: true,  // Toggle true/false for Hermes
 ]
 
 
@@ -111,6 +111,8 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            shrinkResources true
+            minifyEnabled true
         }
     }
 }
@@ -119,6 +121,8 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation project(':notifee_react-native')
+    //implementation project(':@notifee_react-native') // Use this line if the package is properly linked
+
 //implementation project(':@notifee_react-native')
 
 
@@ -130,3 +134,12 @@ dependencies {
 }
 
 
+// Comment out these task dependencies for now
+/*
+tasks.named(':notifee_react-native:packageDebugResources') {
+    dependsOn ':notifee_react-native:generateDebugResValues'
+}
+tasks.named('checkReleaseAarMetadata') {
+    dependsOn ':notifee_react-native:writeReleaseAarMetadata'
+}
+*/

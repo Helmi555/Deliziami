@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     flex: 1.5,
     borderColor: "pink",
     borderWidth: 0,
-    paddingBottom: hp(1)
+    paddingBottom: hp(1),
   },
   inputField: {
     height: hp(7.6),

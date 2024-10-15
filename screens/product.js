@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, SafeAreaView, ImageBackground, Image, ScrollView, TouchableOpacity, Pressable, StatusBar } from "react-native";
+import { View, StyleSheet, SafeAreaView, ImageBackground, Image, ScrollView, TouchableOpacity, Pressable, StatusBar } from "react-native";
 import { RFPercentage as fp, RFValue } from 'react-native-responsive-fontsize';
+import { Text } from "react-native-paper";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { IconButton } from "react-native-paper";
 import { useState } from "react";
@@ -60,7 +61,7 @@ export default function Product({ navigation }) {
 
                 >
                 </IconButton>
-                <Text style={styles.pizzaNumber}> {numberOfPizza < 10 ? "0" + numberOfPizza : numberOfPizza} </Text>
+                <Text style={styles.pizzaNumber}>{numberOfPizza < 10 ? "0" + numberOfPizza : numberOfPizza}</Text>
                 <IconButton icon="plus" mode="contained-tonal" onPress={() => { setNumberOfPizza(numberOfPizza + 1) }}
 
                   containerColor={'#e4643b'}
@@ -74,7 +75,7 @@ export default function Product({ navigation }) {
               </View>
             </>
           </View>
-          <Text style={styles.numberBevande} >Bevande    x  {selectedBevanda.length == 0 ? "0" + selectedBevanda.length : selectedBevanda.length}</Text>
+          <Text style={styles.numberBevande} >Bevande    x  {"0" + selectedBevanda.length}</Text>
 
           <BevandeList selectedBevanda={selectedBevanda}
             setSelectedBevanda={setSelectedBevanda} />
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
     elevation: 5
   },
   pizzaNumber: {
-    fontFamily: "Questrial_400Regular",
+    //    fontFamily: "Questrial_400Regular",
     fontSize: fp(3),
     fontWeight: "bold",
     paddingHorizontal: wp(2),

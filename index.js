@@ -19,3 +19,11 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
     }
 });
 AppRegistry.registerComponent(appName, () => App);
+
+
+/******************
+ * 
+ * 
+ * 
+ *  for the apk release: ./gradlew assembleRelease --max-workers=2 
+ */

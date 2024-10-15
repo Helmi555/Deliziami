@@ -1,5 +1,5 @@
 import React, { useState, useLayoutEffect, useEffect } from 'react';
-import { View, Image, StyleSheet, StatusBar, ActivityIndicator, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Image, StyleSheet, StatusBar, Keyboard, ActivityIndicator, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { IconButton, Text, Button, Searchbar } from 'react-native-paper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -9,18 +9,21 @@ import { storeItem, getItem, removeItem, updateItem, clearAsyncStorage } from '.
 import ProductComponent2 from '../components/productComponent2';
 
 
-const ListOfProducts = React.memo(({ navigation }) => {
+const pizzasCategories = [{ id: 0, name: "Pizze Classiche", type: "pizze_classiche" }, { id: 1, name: 'Pizze Speciali', type: "pizze_speciali" }, { id: 2, name: 'Focacce', type: "focacce" }, { id: 3, name: 'Teglie', type: "teglia" }, { id: 4, name: 'Bevande', type: "bevande" }, { id: 5, name: 'Fritti', type: "fritti" }, { id: 6, name: 'Mezzelune', type: "mezzelune" }]
 
+const ListOfProducts = React.memo(({ navigation, route }) => {
+  const { category } = route.params
   const [textSearch, setTextSearch] = useState('')
   const [isFavorite, setIseFavorite] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState({ id: 0, name: "Pizze Classiche", type: "pizze_classiche" })
-  const pizzasCategories = [{ id: 0, name: "Pizze Classiche", type: "pizze_classiche" }, { id: 1, name: 'Pizze Speciali', type: "pizze_speciali" }, { id: 2, name: 'Focacce', type: "focacce" }, { id: 3, name: 'Teglie', type: "teglia" }, { id: 4, name: 'Bevande', type: "bevande" }, { id: 5, name: 'Fritti', type: "fritti" }, { id: 6, name: 'Mezzelune', type: "mezzelune" }]
+  const [selectedCategory, setSelectedCategory] = useState(category)
   const [products, setProducts] = useState({})
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: {
         backgroundColor: "#f9f9f9",
+
       },
       headerTitle: () => (
         <View style={styles.headerContainer}>
@@ -30,7 +33,7 @@ const ListOfProducts = React.memo(({ navigation }) => {
 
             placeholderTextColor="#999"
             inputMode='search'
-            inputStyle={{ fontFamily: "Questrial_400Regular", color: "black", fontSize: RFPercentage(2.5), fontWeight: "600" }}
+            inputStyle={{ fontFamily: "Questrial_400Regular", color: "black", textAlignVertical: "center", fontSize: RFPercentage(2.4), fontWeight: "600" }}
             iconColor='#2a2a2a'
             elevation={1}
           />
@@ -52,15 +55,29 @@ const ListOfProducts = React.memo(({ navigation }) => {
       }
     }
     getProducts()
-    console.log("all products setted", products[0])
-
-
+    console.log("all products setted")
   }, [])
 
   const renderPizzaItem = ({ item }) => {
     return <ProductComponent2 product={item} navigation={navigation} />
   }
 
+  useEffect(() => {
+    // Add event listeners
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+    console.log(isKeyboardVisible)
+    // Cleanup listeners on component unmount
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
 
   /*  if (!fontsLoaded) {
@@ -82,62 +99,69 @@ const ListOfProducts = React.memo(({ navigation }) => {
   return (
 
     <View style={styles.container}>
+      <View style={[styles.container2, {
+        borderBottomLeftRadius: isKeyboardVisible ? 0 : hp("6.4%"),
+        borderBottomRightRadius: isKeyboardVisible ? 0 : hp("6.4%")
+      }]}>
+        <View style={styles.categoriesContainer}>
+          <View >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginHorizontal: wp(6) }}
 
-      <View style={styles.categoriesContainer}>
-        <View >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ marginHorizontal: wp(6) }}
-
-          >
-            {pizzasCategories.map((item) => (
-              <TouchableOpacity key={item.id} onPress={() => {
-                setSelectedCategory(item)
-              }}>
-                <View style={[styles.categoryContainer, item.name == selectedCategory.name ? styles.selectedCategory : styles.unselectedCategory]}>
-                  <Text style={[styles.pizzasName, item.name == selectedCategory.name && styles.pizzasNameActive]}>
-                    {item.name}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+            >
+              {pizzasCategories.map((item) => (
+                <TouchableOpacity key={item.id} onPress={() => {
+                  setSelectedCategory(item)
+                }}>
+                  <View style={[styles.categoryContainer, item.name == selectedCategory.name ? styles.selectedCategory : styles.unselectedCategory]}>
+                    <Text style={[styles.pizzasName, item.name == selectedCategory.name && styles.pizzasNameActive]}>
+                      {item.name}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
+        <View style={styles.listContainer}>
+          <FlatList
+            numColumns={2}
+            contentContainerStyle={{
+              alignItems: 'flex-start',     // Centers items horizontally
+              paddingHorizontal: wp(2), // Adjust padding to control spacing from edges
+            }}
+
+            columnWrapperStyle={{
+              justifyContent: 'center', // Ensure items spread evenly across the row
+
+            }}
+            showsHorizontalScrollIndicator={true}
+            initialNumToRender={8}
+            maxToRenderPerBatch={6}
+            ListHeaderComponent={() =>
+              <View style={{ margin: wp(2.4) }}>
+
+              </View>
+            }
+            ListFooterComponent={() =>
+              <View style={{ margin: hp(1) }}>
+              </View>
+            }
+            ItemSeparatorComponent={() => <View style={{ marginHorizontal: wp(20), marginVertical: hp(0.6) }}></View>}
+            ListEmptyComponent={() => { !products && <Text style={{ fontWeight: "bold", fontSize: RFValue(20) }}>Nessun prodotto trovato</Text> }}
+            data={products[selectedCategory.type]}
+            renderItem={renderPizzaItem}
+            keyExtractor={(item) => item.id.toString()}
+
+            windowSize={5}
+            bounces={false}
+          />
+
+        </View>
+
       </View>
-      <View style={styles.listContainer}>
-        <FlatList
-          numColumns={2}
-          contentContainerStyle={{
-            alignItems: 'center',     // Centers items horizontally
-            paddingHorizontal: wp(2), // Adjust padding to control spacing from edges
-          }}
-
-
-          showsHorizontalScrollIndicator={true}
-          initialNumToRender={10}
-          maxToRenderPerBatch={5}
-          ListHeaderComponent={() =>
-            <View style={{ margin: wp(3) }}>
-
-            </View>
-          }
-          ListFooterComponent={() =>
-            <View style={{ margin: hp(1) }}>
-            </View>
-          }
-          ItemSeparatorComponent={() => <View style={{ marginHorizontal: wp(2), marginVertical: hp(0.6) }}></View>}
-          ListEmptyComponent={() => <Text>Nessun prodotto trovato</Text>}
-          data={products[selectedCategory.type]}
-          renderItem={renderPizzaItem}
-          keyExtractor={(item) => item.id.toString()}
-          windowSize={5}
-          bounces={false}
-        />
-
-      </View>
-
-
     </View>
 
 
@@ -147,23 +171,31 @@ const ListOfProducts = React.memo(({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#2a2a2f",
+    overflow: "hidden"
+  },
+  container2: {
+    flex: 1,
     backgroundColor: "#f9f9f9"
   },
   headerContainer: {
-    flex: 1,
     borderWidth: 0,
     width: wp(80),
-    margin: wp(0.1),
+    marginVertical: hp(2),
     padding: wp(0.1),
 
   },
   searchBar: {
     backgroundColor: "#f5f5f5",
-    marginVertical: hp(0.4),
+    marginVertical: hp(2),
     borderRadius: wp(6),
-    height: hp(6),
-    width: wp(80),
-    maxWidth: '90%', // Adjust the width as needed
+    width: wp(90),
+    height: hp(7),
+    maxWidth: '95%', // Adjust the width as needed
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 1
+
 
   },
   categoriesContainer: {
@@ -178,7 +210,8 @@ const styles = StyleSheet.create({
     flex: 9,
     borderColor: "blue",
     borderWidth: 0,
-    paddingHorizontal: wp(1)
+    alignItems: "center",
+    paddingBottom: hp(1.4)
   },
   categoryContainer: {
     marginHorizontal: wp(0.6),
@@ -224,62 +257,6 @@ const styles = StyleSheet.create({
     left: wp("3%"), // Adjust the left margin to position the image
     zIndex: 1,
 
-  },
-
-  skeletonContainer: {
-    width: wp("50%"),
-    height: hp("32.6%"),
-    backgroundColor: '#f9f9f9',
-    borderRadius: 20,
-    paddingHorizontal: wp("3%"),
-    paddingTop: wp("3%"),
-    elevation: 5,
-    marginTop: hp("8%"),
-    marginHorizontal: 10,
-  },
-  imageSkeleton: {
-    width: wp("36%"),
-    height: wp("34%"),
-    position: 'absolute',
-    top: -wp(14),
-    left: wp("3%"),
-    borderRadius: 10,
-  },
-  textWrapper: {
-    marginTop: wp("15%"),
-  },
-  textSkeleton: {
-    width: wp("40%"),
-    height: 20,
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  textSkeletonShort: {
-    width: wp("30%"),
-    height: 20,
-    borderRadius: 4,
-  },
-  emojiSkeleton: {
-    width: wp("8%"),
-    height: wp("8%"),
-    borderRadius: wp("4%"),
-    marginBottom: 16,
-  },
-  footerSkeleton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingBottom: hp("1%"),
-  },
-  priceSkeleton: {
-    width: wp("20%"),
-    height: 24,
-    borderRadius: 4,
-  },
-  iconSkeleton: {
-    width: wp("10%"),
-    height: wp("10%"),
-    borderRadius: wp("5%"),
   }
 
 });
