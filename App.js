@@ -13,7 +13,8 @@ import { useKeyboard } from '@react-native-community/hooks';
 import { AuthProvider, useAuth } from './contexts/authContext'; // Import the AuthProvider
 import AuthNavigator from './screens/Stacks/AuthStackNavigator';
 import HomeStack from './screens/Stacks/HomeStack';
-import SplashScreen from 'react-native-splash-screen';
+import LoadingScreen from './components/LoadingScreen';
+import { AppProvider } from './contexts/AppContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -21,52 +22,61 @@ const Stack = createStackNavigator();
 const TabArr = [
   { route: 'Home menu', label: 'Home', type: Icons.Feather, icon: 'home', component: HomeStack, color: "#2a2a2f", alphaClr: "#2a2a2f" },
   { route: 'Product', label: 'Product', type: Icons.Feather, icon: 'shopping-cart', component: Product, color: "#2a2a2f", alphaClr: "#2a2a2f" },
+  { route: 'Favorites', label: 'Favorites', type: Icons.Feather, icon: 'heart', component: Product, color: "#2a2a2f", alphaClr: "#2a2a2f" },
   { route: 'Account', label: 'Account', type: Icons.FontAwesome, icon: 'user-circle-o', component: Product, color: "#2a2a2f", alphaClr: "#2a2a2f" },
-  { route: 'Add', label: 'Add New', type: Icons.Feather, icon: 'plus-square', component: Product, color: "#2a2a2f", alphaClr: "#2a2a2f" },
 ];
 
 // Bottom Tab Navigator (Home, Product, etc.)
 function BottomTabs() {
   const keyboard = useKeyboard();
   return (
-    <Tab.Navigator
-      screenOptions={(route) => ({
-        headerShown: false,
-        //tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          backgroundColor: keyboard.keyboardShown ? "transparent" : "#2a2a2f",
-          height: keyboard.keyboardShown ? 0 : hp("8%"),
-          borderColor: "transparent",
-          overflow: 'hidden',
-          //display: route == "Product Details" ? "none" : "flex"
-        }
-      })}
-    >
-      {TabArr.map((item, index) => (
-        <Tab.Screen
-          key={index}
-          name={item.route}
-          component={item.component}
-          options={{
+    <AppProvider>
+      <Tab.Navigator
+        screenOptions={(route) => ({
+          headerShown: false,
+          //tabBarHideOnKeyboard: true,
+          tabBarStyle: {
+            backgroundColor: keyboard.keyboardShown ? "transparent" : "#2a2a2f",
+            height: keyboard.keyboardShown ? 0 : hp("8%"),
+            borderColor: "transparent",
+            overflow: 'hidden',
+            //display: route == "Product Details" ? "none" : "flex"
+          }
+        })}
+      >
+        {TabArr.map((item, index) => (
+          <Tab.Screen
+            key={index}
+            name={item.route}
+            component={item.component}
+            options={{
 
-            tabBarShowLabel: false,
-            tabBarButton: (props) => <TabButton {...props} item={item} />
+              tabBarShowLabel: false,
+              tabBarButton: (props) => <TabButton {...props} item={item} />
 
-          }}
-        />
-      ))}
-    </Tab.Navigator>
+            }}
+          />
+        ))}
+      </Tab.Navigator>
+    </AppProvider>
   );
 }
 
 // AuthStack for conditional rendering based on authentication
 function AuthStack() {
-  const { isAuthenticated } = useAuth(); // Access the authentication state
+  const { isAuthenticated, isLoading } = useAuth(); // Access the authentication state
+
+
+  if (isLoading) {
+    return (
+      <LoadingScreen />
+    )
+  }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!isAuthenticated ? (
-        <Stack.Screen name="Auth" component={AuthNavigator} /> // Use AuthNavigator here
+        <Stack.Screen name="Auth" component={AuthNavigator} />
       ) : (
         <Stack.Screen name="Main" component={BottomTabs} />
       )}
@@ -89,12 +99,6 @@ function AuthStack() {
 
 // Main App Component
 export default function App() {
-
-  /*  useEffect(() => {
-     // Hide splash screen after app is loaded
-     if (Platform.OS === "android") SplashScreen.hide()
- 
-   }, []); */
 
   return (
     <AuthProvider>

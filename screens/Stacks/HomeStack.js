@@ -45,7 +45,7 @@ const HomeStack = () => (
           open: { animation: 'timing', config: { duration: 500 } },
           close: { animation: 'timing', config: { duration: 500 } },
         },
-        cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid // Fade transition
+        cardStyleInterpolator: CardStyleInterpolators.forNoAnimation // Fade transition
       })} />
 
   </AuthStack.Navigator>

@@ -7,63 +7,99 @@ import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 import CustomSkeletonLoader from '../components/CustomSkeletonLoader';
 import { storeItem, getItem, removeItem, updateItem, clearAsyncStorage } from '../AsyncStorageHelper';
 import ProductComponent2 from '../components/productComponent2';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAppContext } from '../contexts/AppContext.js';
 
 
 const pizzasCategories = [{ id: 0, name: "Pizze Classiche", type: "pizze_classiche" }, { id: 1, name: 'Pizze Speciali', type: "pizze_speciali" }, { id: 2, name: 'Focacce', type: "focacce" }, { id: 3, name: 'Teglie', type: "teglia" }, { id: 4, name: 'Bevande', type: "bevande" }, { id: 5, name: 'Fritti', type: "fritti" }, { id: 6, name: 'Mezzelune', type: "mezzelune" }]
 
 const ListOfProducts = React.memo(({ navigation, route }) => {
-  const { category } = route.params
-  const [textSearch, setTextSearch] = useState('')
-  const [isFavorite, setIseFavorite] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState(category)
-  const [products, setProducts] = useState({})
+
+  const { category } = route.params;
+  const { allProducts } = useAppContext()
+  //console.log("List of productssssssssss", allProducts["mezzelune"].length)
+
+  const [textSearch, setTextSearch] = useState('');
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(category);
+  const [products, setProducts] = useState({});
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: {
         backgroundColor: "#f9f9f9",
-
       },
       headerTitle: () => (
         <View style={styles.headerContainer}>
-          <Searchbar placeholder='Cosa cerchi ?'
-            value={textSearch} onChangeText={(t) => setTextSearch(t)}
+          <Searchbar
+            placeholder='Cosa cerchi ?'
+            value={textSearch}
+            onChangeText={(t) => handleSearch(t)}
             style={styles.searchBar}
-
             placeholderTextColor="#999"
             inputMode='search'
-            inputStyle={{ fontFamily: "Questrial_400Regular", color: "black", textAlignVertical: "center", fontSize: RFPercentage(2.4), fontWeight: "600" }}
+            inputStyle={{
+              fontFamily: "Questrial_400Regular",
+              color: "black",
+              textAlignVertical: "center",
+              fontSize: RFPercentage(2.4),
+              fontWeight: "600"
+            }}
             iconColor='#2a2a2a'
             elevation={1}
           />
         </View>
       ),
       headerLeft: () => (
-        <IconButton icon="arrow-left" onPress={() => navigation.goBack()} size={wp(6)} iconColor='#e4643b' />
+        <IconButton
+          icon="arrow-left"
+          onPress={() => navigation.goBack()}
+          size={wp(6)}
+          iconColor='#e4643b'
+        />
       ),
-
-
     });
-  }, [textSearch, navigation])
+  }, [textSearch, navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setTextSearch(""); // Reset search on focus
+      const getProducts = async () => {
+        const fetchedProducts = await getItem("allProducts");
+        if (fetchedProducts) {
+          setProducts(fetchedProducts);
+          setFilteredProducts(fetchedProducts[selectedCategory.type] || []);
+        }
+      };
+      getProducts();
+    }, [selectedCategory])
+  );
 
   useEffect(() => {
-    const getProducts = async () => {
-      const products = await getItem("allProducts")
-      if (products) {
-        setProducts(products)
-      }
+    handleSearch(textSearch);
+  }, [textSearch]);
+
+  // Handle search and filter
+  const handleSearch = (searchText) => {
+    setTextSearch(searchText);
+
+    if (searchText.trim() === "") {
+      setFilteredProducts(products[selectedCategory.type] || []);
+    } else {
+      const filtered = products[selectedCategory.type]?.filter((item) =>
+        item.name.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setFilteredProducts(filtered || []);
     }
-    getProducts()
-    console.log("all products setted")
-  }, [])
+  };
 
   const renderPizzaItem = ({ item }) => {
-    return <ProductComponent2 product={item} navigation={navigation} />
-  }
+    return <ProductComponent2 product={item} navigation={navigation} />;
+  };
 
   useEffect(() => {
-    // Add event listeners
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
     });
@@ -71,102 +107,73 @@ const ListOfProducts = React.memo(({ navigation, route }) => {
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
       setKeyboardVisible(false);
     });
-    console.log(isKeyboardVisible)
-    // Cleanup listeners on component unmount
+
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
     };
   }, []);
 
-
-  /*  if (!fontsLoaded) {
-      return  (  <SkeletonContent
-       containerStyle={styles.skeletonContainer}
-       isLoading={loading}
-       layout={[
-         { key: 'image', width: wp('36%'), height: wp('34%'), marginBottom: 10, borderRadius: 10 },
-         { key: 'title', width: wp('40%'), height: 20, marginBottom: 6 },
-         { key: 'price', width: wp('30%'), height: 20, marginBottom: 6 },
-         { key: 'emoji', width: wp('8%'), height: wp('8%'), borderRadius: wp('4%') },
-       ]}
-     />)  
- 
-     return (<CustomSkeletonLoader />)
-   } */
-
-
   return (
-
     <View style={styles.container}>
       <View style={[styles.container2, {
         borderBottomLeftRadius: isKeyboardVisible ? 0 : hp("6.4%"),
         borderBottomRightRadius: isKeyboardVisible ? 0 : hp("6.4%")
       }]}>
         <View style={styles.categoriesContainer}>
-          <View >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginHorizontal: wp(6) }}
-
-            >
-              {pizzasCategories.map((item) => (
-                <TouchableOpacity key={item.id} onPress={() => {
-                  setSelectedCategory(item)
-                }}>
-                  <View style={[styles.categoryContainer, item.name == selectedCategory.name ? styles.selectedCategory : styles.unselectedCategory]}>
-                    <Text style={[styles.pizzasName, item.name == selectedCategory.name && styles.pizzasNameActive]}>
-                      {item.name}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginHorizontal: wp(6) }}
+          >
+            {pizzasCategories.map((item) => (
+              <TouchableOpacity key={item.id} onPress={() => {
+                setSelectedCategory(item);
+                handleSearch(textSearch); // Re-apply search when category changes
+              }}>
+                <View style={[
+                  styles.categoryContainer,
+                  item.name == selectedCategory.name ? styles.selectedCategory : styles.unselectedCategory
+                ]}>
+                  <Text style={[
+                    styles.pizzasName,
+                    item.name == selectedCategory.name && styles.pizzasNameActive
+                  ]}>
+                    {item.name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
+
         <View style={styles.listContainer}>
           <FlatList
             numColumns={2}
             contentContainerStyle={{
-              alignItems: 'flex-start',     // Centers items horizontally
+              alignItems: 'flex-start', // Centers items horizontally
               paddingHorizontal: wp(2), // Adjust padding to control spacing from edges
             }}
-
             columnWrapperStyle={{
               justifyContent: 'center', // Ensure items spread evenly across the row
-
             }}
-            showsHorizontalScrollIndicator={true}
+            showsHorizontalScrollIndicator={false}
             initialNumToRender={8}
             maxToRenderPerBatch={6}
-            ListHeaderComponent={() =>
-              <View style={{ margin: wp(2.4) }}>
-
-              </View>
-            }
-            ListFooterComponent={() =>
-              <View style={{ margin: hp(1) }}>
-              </View>
-            }
-            ItemSeparatorComponent={() => <View style={{ marginHorizontal: wp(20), marginVertical: hp(0.6) }}></View>}
-            ListEmptyComponent={() => { !products && <Text style={{ fontWeight: "bold", fontSize: RFValue(20) }}>Nessun prodotto trovato</Text> }}
-            data={products[selectedCategory.type]}
+            data={filteredProducts}
             renderItem={renderPizzaItem}
             keyExtractor={(item) => item.id.toString()}
-
             windowSize={5}
             bounces={false}
+            ListFooterComponent={() => <View style={{ marginBottom: wp(3) }}></View>}
+            ItemSeparatorComponent={<View style={{ marginBottom: wp(2) }}></View>}
           />
-
         </View>
-
       </View>
     </View>
-
-
   );
-})
+});
+
 
 const styles = StyleSheet.create({
   container: {

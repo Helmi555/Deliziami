@@ -7,17 +7,35 @@ import { IconButton } from "react-native-paper";
 import BevandeList from "../components/BevandeList";
 import FastImage from "react-native-fast-image";
 import SegmentedControlTab from 'react-native-segmented-control-tab';
-import { round, size, truncate } from "lodash";
 import { ButtonGroup } from '@rneui/themed';
 //import ColorThief from 'color-thief-browser';
 import LinearGradient from 'react-native-linear-gradient';
-
+import { getDominantColor } from "./APIs/loginApis";
 const pizzaSizes = [
     { id: '1', label: '14 cm' },
     { id: '2', label: '16 cm' },
     { id: '3', label: '18 cm' },
 ];
 
+
+const lightenColor = (rgbString, amount) => {
+    // Extract the RGB values from the string using regex
+    const rgbValues = rgbString.match(/\d+/g).map(Number); // Extracts numbers and converts them to integers
+
+    // Make sure we have valid RGB values (length should be 3 for RGB)
+    if (rgbValues.length >= 3) {
+        const [r, g, b] = rgbValues;
+        const newR = Math.min(r + amount, 255);
+        const newG = Math.min(g + amount, 255);
+        const newB = Math.min(b + amount, 255);
+
+        // Return the new color in RGBA format, keeping the original alpha if present
+        const alpha = rgbValues.length === 4 ? rgbValues[3] / 255 : 0.2; // Default to 0.5 opacity if not provided
+        return `rgba(${newR}, ${newG}, ${newB}, ${alpha})`;
+    }
+
+    return rgbString; // If the input is invalid, return the original string
+};
 
 
 export default function ProductDetails({ navigation, route }) {
@@ -43,15 +61,32 @@ export default function ProductDetails({ navigation, route }) {
     const [selectedBevanda, setSelectedBevanda] = useState([]);
     const [sizePrice, setSizePrice] = useState(product.sizePrice ? product.sizePrice : []);
     const [numberOfVariants, setNumberOfVariants] = useState(0)
+    const [response, setResponse] = useState({ color: { rgb: "rgb(250,540,250)" } })
+    const [bgColor, setBgColor] = useState("rgba(250,540,250,0.7803921568627451)"); // Default background color
+
     const returnSizes = () => {
         return product.sizePrice.map((item) => item.size)
     };
 
+    useEffect(() => {
+        const fetch = async () => {
+            try {
+                await getDominantColor(product.photoUrl, setResponse)
+            }
+            catch (e) {
+                console.log(e)
+            }
+        }
+        fetch()
+    }, [])
 
+    useEffect(() => {
+        if (response.status === 200) {
+            //console.log(response)
+            setBgColor(lightenColor(response.color.rgb, 30))
+        }
 
-    const [bgColor, setBgColor] = useState('#f9f9f9'); // Default background color
-
-
+    }, [response])
 
 
 
@@ -98,100 +133,116 @@ export default function ProductDetails({ navigation, route }) {
     return (
         <SafeAreaView style={styles.mainContainer}>
             <StatusBar hidden={false} />
-            <View style={[styles.topContainer, { backgroundColor: bgColor }]}>
-                <FastImage
-                    style={styles.image}
-                    source={{
-                        uri: product.photoUrl,
-                        priority: FastImage.priority.high,
+            <View style={styles.secondMainContainer}>
 
-                    }}
-                    resizeMode={FastImage.resizeMode.contain}
-                />
+                <View style={[styles.topContainer, { backgroundColor: bgColor, borderColor: response.color.rgb, borderWidth: wp(0.3) }]}>
+                    <FastImage
+                        style={styles.image}
+                        source={{
+                            uri: product.photoUrl,
+                            priority: FastImage.priority.high,
 
-            </View>
-            <View style={styles.midContainer}>
+                        }}
+                        resizeMode={FastImage.resizeMode.contain}
+                    />
 
-                <ButtonGroup
-                    buttons={returnSizes()}
-                    selectedIndex={selectedIndex}
-                    onPress={setSelectedIndex}
-                    containerStyle={styles.buttonGroupContainer(sizePrice.length)}
-                    buttonStyle={styles.buttonStyle}
-                    selectedButtonStyle={styles.selectedButtonStyle}
-                    textStyle={styles.buttonTextStyle}
-                    selectedTextStyle={styles.selectedButtonTextStyle}
-                    innerBorderStyle={{
-                        color: "transparent",
-                        width: 0
-                    }}
-                    activeOpacity={2}
-                    underlayColor={'#f1f1f1'} // Change the press underlay color
+                </View>
+                <View style={{
+                    flex: 4, backgroundColor: "#efefef",
+                    borderBottomLeftRadius: hp("6.4%"),
+                    borderBottomRightRadius: hp("6.4%"),
+                }}>
+                    <View style={styles.midContainer}>
 
-                />
-            </View>
-            <View style={styles.bottomContainer}>
-                <View style={styles.nameQuantContainer}>
-                    <View style={{ borderWidth: 0, maxWidth: wp(60) }}>
-                        <Text numberOfLines={2} ellipsizeMode="tail" style={{ fontSize: RFValue(26), fontWeight: "bold", borderWidth: 0 }}>{product.name}</Text>
-                    </View>
-                    <View>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderWidth: 0, marginRight: wp(1) }}>
-                            <IconButton icon="minus" mode="contained-tonal" onPress={() => { numberOfPizza > 1 ? setNumberOfPizza(numberOfPizza - 1) : null }}
+                        <ButtonGroup
+                            buttons={returnSizes()}
+                            selectedIndex={selectedIndex}
+                            onPress={setSelectedIndex}
+                            containerStyle={styles.buttonGroupContainer(sizePrice.length)}
+                            buttonStyle={styles.buttonStyle}
+                            selectedButtonStyle={styles.selectedButtonStyle}
+                            textStyle={styles.buttonTextStyle}
+                            selectedTextStyle={styles.selectedButtonTextStyle}
+                            innerBorderStyle={{
+                                color: "transparent",
+                                width: 0
+                            }}
+                            activeOpacity={2}
+                            underlayColor={'#f1f1f1'} // Change the press underlay color
 
-                                containerColor={'#e4643b'}
-                                iconColor={"#fff"}
-                                size={wp(5.2)}
-                                style={{ borderRadius: wp("2%") }}
+                        />
+                    </View >
+                    <View style={styles.bottomContainer}>
+                        <View style={styles.nameQuantContainer}>
+                            <View style={{ borderWidth: 0, maxWidth: wp(60) }}>
+                                <Text numberOfLines={2} ellipsizeMode="tail" style={{ fontSize: RFValue(26), fontWeight: "bold", borderWidth: 0 }}>{product.name}</Text>
+                            </View>
+                            <View>
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderWidth: 0, marginRight: wp(1) }}>
+                                    <IconButton icon="minus" mode="contained-tonal" onPress={() => { numberOfPizza > 1 ? setNumberOfPizza(numberOfPizza - 1) : null }}
 
-                            >
-                            </IconButton>
-                            <Text style={styles.pizzaNumber}>{numberOfPizza < 10 ? "0" + numberOfPizza : numberOfPizza}</Text>
-                            <IconButton icon="plus" mode="contained-tonal" onPress={() => { setNumberOfPizza(numberOfPizza + 1) }}
+                                        containerColor={'#e4643b'}
+                                        iconColor={"#fff"}
+                                        size={wp(5.2)}
+                                        style={{ borderRadius: wp("2%") }}
 
-                                containerColor={'#e4643b'}
+                                    >
+                                    </IconButton>
+                                    <Text style={styles.pizzaNumber}>{numberOfPizza < 10 ? "0" + numberOfPizza : numberOfPizza}</Text>
+                                    <IconButton icon="plus" mode="contained-tonal" onPress={() => { setNumberOfPizza(numberOfPizza + 1) }}
 
-                                iconColor={"#fff"}
-                                size={wp(5.2)}
-                                style={{ borderRadius: wp("2%") }}
+                                        containerColor={'#e4643b'}
 
-                            >
-                            </IconButton>
+                                        iconColor={"#fff"}
+                                        size={wp(5.2)}
+                                        style={{ borderRadius: wp("2%") }}
+
+                                    >
+                                    </IconButton>
+                                </View>
+                            </View>
                         </View>
+                        <View style={{ marginVertical: hp(2) }}>
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                                <View style={{ borderWidth: 0, maxWidth: wp(70) }}>
+                                    <Text style={styles.description} numberOfLines={2}  >
+                                        {product.description ? product.description : "No descriptions"}
+                                    </Text>
+                                </View>
+                                <Text style={styles.price} >
+                                    €{product.sizePrice[selectedIndex].price * numberOfPizza}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={{ flexDirection: "row", marginVertical: hp(3), justifyContent: "space-between", alignItems: "center" }}>
+                            <View>
+
+                                <Text style={{ color: "#a0a0a0", fontSize: RFValue(20), fontWeight: "900" }}>
+                                    Variants  x  <Text style={{ color: "#707070", fontSize: RFValue(20), fontWeight: "900" }}>{numberOfVariants < 10 ? "0" + numberOfVariants : numberOfVariants}</Text>
+                                </Text>
+
+                            </View>
+                            <View>
+                                <LinearGradient
+                                    colors={['#ff9966', '#e4643b']} // Define the gradient colors
+                                    style={styles.gradientButton}
+                                    start={{ x: 0, y: 1 }}
+                                    end={{ x: 1, y: 0 }}  // Gradient ends at bottom-right
+
+                                >
+                                    <Button mode="text"
+                                        buttonColor="transparent" textColor="#fff" labelStyle={{ fontWeight: "500", fontSize: RFValue(15) }}
+                                        onPress={() => setNumberOfVariants(numberOfVariants + 1)}
+                                        style={{ borderRadius: wp(2) }}
+                                    >
+                                        Manage variants
+                                    </Button>
+                                </LinearGradient>
+                            </View>
+                        </View>
+
                     </View>
                 </View>
-                <View style={{ marginVertical: hp(2) }}>
-                    <Text style={styles.description}>
-                        {product.description ? product.description : "No descriptions"}
-                    </Text>
-                </View>
-                <View style={{ flexDirection: "row", marginVertical: hp(3), justifyContent: "space-between", alignItems: "center" }}>
-                    <View>
-
-                        <Text style={{ color: "#a0a0a0", fontSize: RFValue(20), fontWeight: "900" }}>
-                            Variants  x  <Text style={{ color: "#707070", fontSize: RFValue(20), fontWeight: "900" }}>{numberOfVariants < 10 ? "0" + numberOfVariants : numberOfVariants}</Text>
-                        </Text>
-
-                    </View>
-                    <View>
-                        <LinearGradient
-                            colors={['#ff9966', '#e4643b']} // Define the gradient colors
-                            style={styles.gradientButton}
-                            start={{ x: 0, y: 1 }}
-                            end={{ x: 1, y: 0 }}  // Gradient ends at bottom-right
-
-                        >
-                            <Button mode="text"
-                                buttonColor="transparent" textColor="#fff" labelStyle={{ fontWeight: "500", fontSize: RFValue(15) }}
-                                onPress={() => setNumberOfVariants(numberOfVariants + 1)}
-                                style={{ borderRadius: wp(2) }}
-                            >
-                                Manage variants
-                            </Button>
-                        </LinearGradient>
-                    </View>
-                </View>
-
             </View>
         </SafeAreaView>
 
@@ -205,12 +256,24 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#2a2a2f",
     },
+    secondMainContainer: {
+        flex: 1,
+        backgroundColor: "#f9f9f9",
+        borderBottomLeftRadius: hp("6.4%"),
+        borderBottomRightRadius: hp("6.4%"),
+
+    },
     topContainer: {
         flex: 3,
-        //backgroundColor: "#f6f6f6",
+        //backgroundColor: "#f9f9f9",
         borderWidth: 0,
         paddingHorizontal: wp(1),
         paddingVertical: hp(0.6),
+        borderTopRightRadius: wp(1),
+        borderTopLeftRadius: wp(1),
+        marginHorizontal: wp(2),
+        borderBottomLeftRadius: hp(10),
+        borderBottomRightRadius: hp(10),
     },
     midContainer: {
         flex: 1,
@@ -220,21 +283,26 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: wp(2),
         paddingVertical: wp(1),
+        borderBottomLeftRadius: hp(200),
+        borderBottomRightRadius: hp(200),
     },
     bottomContainer: {
         flex: 3,
-        backgroundColor: "#f9f9f9",
+        backgroundColor: "#efefef",
         borderWidth: 0,
+        paddingTop: hp(1),
+        paddingHorizontal: wp(4),
         borderBottomLeftRadius: hp("6.4%"),
         borderBottomRightRadius: hp("6.4%"),
-        paddingHorizontal: wp(4)
     },
     image: {
         height: "100%",
         width: "100%",
         borderRadius: wp(4),
         borderWidth: 0,
-        borderColor: "#e55e5e"
+        borderColor: "#e55e5e",
+        borderBottomLeftRadius: hp(10),
+        borderBottomRightRadius: hp(10),
 
     },
     buttonGroupContainer: (size) => ({
@@ -248,7 +316,7 @@ const styles = StyleSheet.create({
 
     }),
     buttonStyle: {
-        backgroundColor: '#f1f1f1', // Background for unselected buttons
+        backgroundColor: '#efefef', // Background for unselected buttons
         marginHorizontal: wp(1), // Space between buttons
         borderRadius: wp(12), // Curve the edges of individual buttons
         borderWidth: 0,
@@ -290,6 +358,12 @@ const styles = StyleSheet.create({
         padding: wp(1),
         elevation: 2 // Add some padding around the button for the gradient background
     },
+    price: {
+        fontSize: RFValue(25),
+        fontWeight: "bold",
+        marginRight: wp(2)
+
+    }
 })
 
 

@@ -1,56 +1,59 @@
 import { LogBox } from "react-native";
-import { currentAdmin_KEY } from "../../functions"
+import { currentAdmin_KEY } from "../../functions";
 import moment from "moment";
 import bcrypt from 'react-native-bcrypt';
-import { getItem, storeItem } from "../../AsyncStorageHelper";
+import { getItem, storeItem, removeItem } from "../../AsyncStorageHelper";
 
-// Generate a salt
+// Import the polyfill
+import 'react-native-get-random-values';
+import { has } from "lodash";
+
+// Ignore logs (optional)
 LogBox.ignoreLogs(['Using Math.random is not cryptographically secure!']);
 
-const generateHash = async (data) => {
-    return CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex);
-  };
-  
 // Pre-compute the hash at the start of the app
-let hash;
-let lastDate
+let hash = "";
+let lastDate;
+
 const getHash = async () => {
     if (!hash) {
         const adminKey = await currentAdmin_KEY(); // Await the async function
+        console.log("curreAdminKey is ", adminKey)
         const salt = bcrypt.genSaltSync(10); // Generate salt
         const computedHash = bcrypt.hashSync(adminKey, salt); // Compute hash
-        return computedHash;
-    }
-    else {
-        return hash
+
+        console.log("Frontend - adminKey:", adminKey);
+        console.log("Frontend - salt:", salt);
+        console.log("Frontend - computedHash:", computedHash);
+        return computedHash; // Return the hashed adminKey
+    } else {
+        return hash;
     }
 };
-
 // Call getHash during app initialization to set the hash
 const initializeHash = async () => {
-    console.log("*****  Im starting the initializeHash   ****")
-
+    console.log("*****  Im starting the initializeHash   ****");
+    console.log("last date is ", lastDate, " and hash is ", hash)
     try {
+        //await removeItem('hashPair')
         const storedHashPair = await getItem('hashPair');
         if (storedHashPair && storedHashPair.hash && storedHashPair.lastDate) {
-            hash = storedHashPair.hash
-            lastDate = storedHashPair.lastDate
+            hash = storedHashPair.hash;
+            lastDate = storedHashPair.lastDate;
             if (lastDate !== moment().tz("Europe/Rome").format("YYYY/MM/DD")) {
-                lastDate = moment().tz("Europe/Rome").format("YYYY/MM/DD")
-                await storeItem('hashPair', { hash: hash, lastDate: lastDate })
+                lastDate = moment().tz("Europe/Rome").format("YYYY/MM/DD");
+                await storeItem('hashPair', { hash: hash, lastDate: lastDate });
             }
-        }
-        else {
+        } else {
             hash = await getHash();
-            lastDate = moment().tz('Europe/Rome').format('YYYY/MM/DD')
-            await storeItem("hashPair", { hash, lastDate })
+            lastDate = moment().tz('Europe/Rome').format('YYYY/MM/DD');
+            await storeItem("hashPair", { hash, lastDate });
         }
-
     } catch (error) {
-        console.log("Initialize hash  error:", error)
+        console.log("Initialize hash error:", error);
     }
-
 };
+
 const updateHashIfNeeded = async () => {
     const currentDate = moment().tz('Europe/Rome').format('YYYY/MM/DD');
     if (currentDate !== lastDate) {
@@ -60,16 +63,16 @@ const updateHashIfNeeded = async () => {
         await storeItem('hashPair', { hash, lastDate });
     }
 };
+
 export const loginPost = async (username, password, setResponse) => {
     try {
-        await updateHashIfNeeded()
-        //const hash2 = await getHash()
-        console.log("in the api hash:", hash)
+        await updateHashIfNeeded();
+        console.log("in the api hash:", hash);
         const url = 'https://deliziamipizza.onrender.com/api/v1/BackOffice/admins/login'; // Your API endpoint
         const payload = {
             username,
             password,
-            adminKey: hash
+            adminKey: hash,
         };
 
         const response = await fetch(url, {
@@ -81,14 +84,11 @@ export const loginPost = async (username, password, setResponse) => {
         });
 
         if (!response.ok) {
-            setResponse({ status: 400, message: "Error while login" })
-            console.log("problem y habibi", { status: 400, message: "Error while login" })
-
-        }
-        else {
-
+            setResponse({ status: 400, message: "Error while login" });
+            console.log("problem y habibi", { status: 400, message: "Error while login" });
+        } else {
             let data = await response.json();
-            data.status = 200
+            data.status = 200;
             console.log('Success: response.json ', data);
             setResponse(data);
         }
@@ -97,8 +97,6 @@ export const loginPost = async (username, password, setResponse) => {
         setResponse('Failed to create user');
     }
 };
-
-
 export const getAllProducts = async (setResponse) => {
     try {
         await updateHashIfNeeded()

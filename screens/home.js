@@ -10,91 +10,92 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { storeItem, getItem, removeItem, updateItem, clearAsyncStorage } from '../AsyncStorageHelper';
 import { getAllProducts } from './APIs/loginApis';
 import { useAuth } from '../contexts/authContext'; // Import the AuthProvider
-
+import { useAppContext } from '../contexts/AppContext.js';
 
 
 export default function Home({ navigation }) {
 
 
   const { handleLogout, user } = useAuth()
-  /** PIZZE_CLASSICHE:"pizze_classiche",
-        PIZZE_SPECIALI:"pizze_speciali",
-        FOCACCE:"focacce",
-        FRITTI:"fritti",
-        BEVANDE:"bevande",
-        TEGLIA:"teglia",
-        MEZZELUNE:"mezzelune" */
+  const { allProducts } = useAppContext()
   const [language, setLanguage] = useState("it"); // State for current language
   const [textSearch, setTextSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState({ id: 0, name: "Pizze Classiche", type: "pizze_classiche" })
   const pizzasCategories = [{ id: 0, name: "Pizze Classiche", type: "pizze_classiche" }, { id: 1, name: 'Pizze Speciali', type: "pizze_speciali" }, { id: 2, name: 'Focacce', type: "focacce" }, { id: 3, name: 'Teglie', type: "teglia" }, { id: 4, name: 'Bevande', type: "bevande" }, { id: 5, name: 'Fritti', type: "fritti" }, { id: 6, name: 'Mezzelune', type: "mezzelune" }]
-  const [productsList, setProductsList] = useState({})
+  const [products, setProducts] = useState({
+    pizze_classiche: [],
+    pizze_speciali: [],
+    focacce: [],
+    fritti: [],
+    bevande: [],
+    teglia: [],
+    mezzelune: []
+  })
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [response, setResponse] = useState(null)
 
 
-
-
-  useEffect(() => {
-    console.log("Initial user state:", user);
-
-    const fetchData = async () => {
-      const productsDb = await getItem("products");
-
-
-
-      // Handle product fetching
-      if (productsDb) {
-        setProductsList(productsDb);
-      } else {
-        await getAllProducts(setResponse);
-      }
-
+  /* 
+    useEffect(() => {
+      const fetchData = async () => {
+        const productsDb = await getItem("products");
+  
+  
+  
+        // Handle product fetching
+        if (productsDb) {
+          setProductsList(productsDb);
+        } else {
+          await getAllProducts(setResponse);
+        }
+  
+      };
+      fetchData();
       // Log current user and products
-      console.log("Current user:", user, "and products:", productsDb ? productsDb["fritti"].name : []);
-    };
-
-    fetchData();
-  }, []); // This only runs once on component mount
-
-
-  useEffect(() => {
-    if (response) {
-      if (response.status === 200) {
-
-        const categorizedProducts = {
-          pizze_classiche: [],
-          pizze_speciali: [],
-          focacce: [],
-          fritti: [],
-          bevande: [],
-          teglia: [],
-          mezzelune: []
-        };
-        const categorizedAllProducts = {
-          pizze_classiche: [],
-          pizze_speciali: [],
-          focacce: [],
-          fritti: [],
-          bevande: [],
-          teglia: [],
-          mezzelune: []
-        };
-        const productsList = response.products
-        // Group products by their category
-        productsList.forEach((product) => {
-          const category = product.category;
-          if (categorizedProducts[category] && categorizedProducts[category].length < 6) {
-            categorizedProducts[category].push(product);
-          }
-          categorizedAllProducts[category].push(product)
-        });
-        setProductsList(categorizedProducts);
-        storeItem("products", categorizedProducts);
-        storeItem("allProducts", categorizedAllProducts) // Save products in async storage
+      console.log("Current user:", user);
+  
+    }, []); // This only runs once on component mount
+  
+  
+    useEffect(() => {
+      if (response) {
+        if (response.status === 200) {
+  
+          const categorizedProducts = {
+            pizze_classiche: [],
+            pizze_speciali: [],
+            focacce: [],
+            fritti: [],
+            bevande: [],
+            teglia: [],
+            mezzelune: []
+          };
+          const categorizedAllProducts = {
+            pizze_classiche: [],
+            pizze_speciali: [],
+            focacce: [],
+            fritti: [],
+            bevande: [],
+            teglia: [],
+            mezzelune: []
+          };
+          const productsList = response.products
+          // Group products by their category
+          productsList.forEach((product) => {
+            const category = product.category;
+            if (categorizedProducts[category] && categorizedProducts[category].length < 6) {
+              categorizedProducts[category].push(product);
+            }
+            categorizedAllProducts[category].push(product)
+          });
+          setProductsList(categorizedProducts);
+          storeItem("products", categorizedProducts);
+          storeItem("allProducts", categorizedAllProducts) // Save products in async storage
+        }
       }
-    }
-  }, [response]);
+    }, [response]);
+   */
+
 
   /*  const filteredProducts = useMemo(() => {
      return productsList[selectedCategory.type] || [];
@@ -114,6 +115,32 @@ export default function Home({ navigation }) {
      getLanguage()
    }, []) */
 
+
+  useEffect(() => {
+    if (allProducts) {
+      const categorized6Products = {
+        pizze_classiche: [],
+        pizze_speciali: [],
+        focacce: [],
+        fritti: [],
+        bevande: [],
+        teglia: [],
+        mezzelune: []
+      };
+      // Iterate over each category in allProducts
+      Object.keys(allProducts).forEach(category => {
+        // Take the first 6 items for each category
+        categorized6Products[category] = allProducts[category].slice(0, 6);
+      });
+
+      // Set the state with the new categorized6Products
+      setProducts(categorized6Products);
+    }
+
+  }, [allProducts])
+
+
+
   const renderPizzaItem = ({ item }) => {
     //console.log("le iteeeem est ",item)
     return <ProductComponent product={item} navigation={navigation} />
@@ -127,8 +154,8 @@ export default function Home({ navigation }) {
 
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
       setKeyboardVisible(false);
-    });
-    console.log(isKeyboardVisible)
+    })
+
     // Cleanup listeners on component unmount
     return () => {
       keyboardDidShowListener.remove();
@@ -236,7 +263,7 @@ export default function Home({ navigation }) {
             }
             ItemSeparatorComponent={() => <View style={{ marginHorizontal: wp("1%") }}></View>}
 
-            data={productsList[selectedCategory.type]}
+            data={products[selectedCategory.type]}
             horizontal={true}
             renderItem={renderPizzaItem}
             keyExtractor={item => item.id}

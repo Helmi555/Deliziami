@@ -87,12 +87,6 @@ function Login({ navigation }) {
     calculateTextWidth();
   }, []); */
 
-  useEffect(() => {
-    const init = async () => {
-      await initializeHash()
-    }
-    init()
-  }, [])
 
   const onDismissSnackBar = () => setSnackBarVisible(false);
   const onDismissErrorSnackBar = () => setErrorSnackBarVisible(false);
