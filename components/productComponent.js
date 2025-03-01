@@ -8,12 +8,13 @@ import FastImage from 'react-native-fast-image';
 import CustomSkeletonLoader from './CustomSkeletonLoader';
 //import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { getScreenDimension } from '../functions';
+import { addToFavorite } from '../Utils'
 import ProductDetails from '../screens/productDetails';
 const screenDimension = getScreenDimension()
 
 const ProductComponent = React.memo(({ product, navigation }) => {
 
-  const [isFavorite, setIseFavorite] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(product.isFavorite != null ? product.isFavorite : false)
   const [isLoading, setIsLoading] = useState(true)
   /*   if (!fontsLoaded) {
        return  (  <SkeletonContent
@@ -62,7 +63,7 @@ const ProductComponent = React.memo(({ product, navigation }) => {
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingBottom: hp("1%") }}>
           <Text style={[styles.priceText]}>€{product.sizePrice[0].price}</Text>
 
-          <IconButton icon="heart" mode="contained" onPress={() => setIseFavorite(!isFavorite)}
+          <IconButton icon="heart" mode="contained" onPress={() => addToFavorite(isFavorite, setIsFavorite, product.id)}
 
             containerColor={isFavorite ? '#e4643b' : "#EeEeDe"}
 

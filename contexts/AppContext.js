@@ -36,7 +36,7 @@ export const AppProvider = ({ children }) => {
                     await getAllProducts(setResponse)
                 }
                 else {
-                    console.log("App context getAllProducts")
+                    console.log("App context getAllProducts", typeof storedAllProducts)
                     setAllProducts(storedAllProducts)
                 }
 

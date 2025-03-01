@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from './contexts/authContext'; // Import the Au
 import AuthNavigator from './screens/Stacks/AuthStackNavigator';
 import HomeStack from './screens/Stacks/HomeStack';
 import LoadingScreen from './components/LoadingScreen';
+import Favorites from './screens/Favorites';
 import { AppProvider } from './contexts/AppContext';
 
 const Tab = createBottomTabNavigator();
@@ -22,7 +23,7 @@ const Stack = createStackNavigator();
 const TabArr = [
   { route: 'Home menu', label: 'Home', type: Icons.Feather, icon: 'home', component: HomeStack, color: "#2a2a2f", alphaClr: "#2a2a2f" },
   { route: 'Product', label: 'Product', type: Icons.Feather, icon: 'shopping-cart', component: Product, color: "#2a2a2f", alphaClr: "#2a2a2f" },
-  { route: 'Favorites', label: 'Favorites', type: Icons.Feather, icon: 'heart', component: Product, color: "#2a2a2f", alphaClr: "#2a2a2f" },
+  { route: 'Favorites', label: 'Favorites', type: Icons.Feather, icon: 'heart', component: Favorites, color: "#2a2a2f", alphaClr: "#2a2a2f" },
   { route: 'Account', label: 'Account', type: Icons.FontAwesome, icon: 'user-circle-o', component: Product, color: "#2a2a2f", alphaClr: "#2a2a2f" },
 ];
 

@@ -10,12 +10,12 @@ import CustomSkeletonLoader from './CustomSkeletonLoader';
 import { getScreenDimension } from '../functions';
 import CustomProdSkeleton2 from './CustomProdSkeleton2';
 import CustomImageSkeleton from './CustomImageSkeleton';
-
+import { addToFavorite } from '../Utils';
 
 const screenDimension = getScreenDimension()
 const ProductComponent2 = React.memo(({ product, navigation }) => {
 
-  const [isFavorite, setIseFavorite] = useState(false)
+  const [isFavorite, setIseFavorite] = useState(product.isFavorite != null ? product.isFavorite : false)
   const [isLoading, setIsLoading] = useState(false); // State to handle loading status
 
   const handleImageLoad = () => {
@@ -70,7 +70,9 @@ const ProductComponent2 = React.memo(({ product, navigation }) => {
         < View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingBottom: hp("1%") }}>
           <Text style={[styles.priceText]}>€{product.sizePrice[0].price}</Text>
 
-          <IconButton icon="heart" mode="contained" onPress={() => setIseFavorite(!isFavorite)}
+          <IconButton icon="heart" mode="contained" onPress={() =>
+            addToFavorite(isFavorite, setIseFavorite, product.id)
+          }
 
             containerColor={isFavorite ? '#e4643b' : "#fff"}
 
